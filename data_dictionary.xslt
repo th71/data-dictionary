@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <xsl:stylesheet 
   xmlns="http://www.w3.org/1999/xhtml"
   xmlns:tei="http://www.tei-c.org/ns/1.0"
@@ -7,6 +7,7 @@
   xmlns:a="http://relaxng.org/ns/compatibility/annotations/1.0"
   xmlns:teix="http://www.tei-c.org/ns/Examples" 
   xmlns:d="http://www.oxygenxml.com/ns/doc/xsl"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
   xpath-default-namespace="http://www.tei-c.org/ns/1.0"
   exclude-result-prefixes="#all">
   <d:doc>
@@ -37,6 +38,9 @@
   <xsl:param name="debug" select="'true'"/>
   <xsl:param name="displayModule" select="'false'"/>
   <xsl:param name="outputFormat" select="'html'"/>
+  <!-- Adaptation locale : paramétrage de la langue de sortie -->
+  <xsl:param name="outputLanguage" select="en"/> 
+  <!-- -->
   <xsl:param name="teiOutPath" select="'/tmp/data_dictionary_tei.xml'"/>
   <xsl:param name="P5source" select="'p5subset.xml'"/>
   <xsl:param name="dictFile">
@@ -102,9 +106,9 @@
                 </xsl:message>
               </xsl:if>
               <xsl:variable name="teiGloss"
-                select="$teiFile//elementSpec[@ident eq $elementName]/gloss[@xml:lang = 'en']"/>
+                select="$teiFile//elementSpec[@ident eq $elementName]/gloss[@xml:lang = $outputLanguage ]"/>
               <xsl:variable name="teiDesc"
-                select="$teiFile//elementSpec[@ident eq $elementName]/desc[@xml:lang = 'en']"/>
+                select="$teiFile//elementSpec[@ident eq $elementName]/desc[@xml:lang = $outputLanguage ]"/>
               <xsl:variable name="eleModuleName"
                 select="$teiFile//elementSpec[@ident eq $elementName]/@module"/>
               <xsl:variable name="eleClassNames"
@@ -221,7 +225,7 @@
                         <xsl:attribute name="ana" select="'tei'"/>
                         <span type="definition">
                           <xsl:attribute name="target">
-                            <xsl:text>http://www.tei-c.org/release/doc/tei-p5-doc/en/html/ref-</xsl:text>
+                            <xsl:text>http://www.tei-c.org/release/doc/tei-p5-doc/</xsl:text><xsl:value-of select="$outputLanguage"/><xsl:text>/html/ref-</xsl:text>
                             <xsl:value-of select="$elementName"/>
                             <xsl:text>.html</xsl:text>
                           </xsl:attribute>
@@ -246,7 +250,7 @@
                 </xsl:message>
               </xsl:if>
               <xsl:variable name="teiGloss"
-                select="$teiFile//attDef[@ident eq $attName][1]/gloss[@xml:lang eq 'en']"/>
+                select="$teiFile//attDef[@ident eq $attName][1]/gloss[@xml:lang eq $outputLanguage ]"/>
               <xsl:variable name="teiURL"
                 select="document($dictFile)//body/div[@corresp eq $attName][@type eq 'attribute']/span[@type eq 'teiurl']"/>
               <xsl:variable name="teiAttDescSet"
@@ -322,12 +326,12 @@
                           <span>
                             <xsl:attribute name="type" select="'definition'"/>
                             <xsl:attribute name="target">
-                              <xsl:text>http://www.tei-c.org/release/doc/tei-p5-doc/en/html/ref-</xsl:text>
+                              <xsl:text>http://www.tei-c.org/release/doc/tei-p5-doc/</xsl:text><xsl:value-of select="$outputLanguage"/><xsl:text>/html/ref-</xsl:text>
                               <xsl:value-of select="@ident"/>
                               <xsl:text>.html</xsl:text>
                             </xsl:attribute>
                             <xsl:value-of
-                              select="attList/attDef[@ident = $attName]/desc[@xml:lang = 'en']"/>
+                              select="attList/attDef[@ident = $attName]/desc[@xml:lang = $outputLanguage ]"/>
                             <xsl:if test="@ident != ''">
                               <ident>
                                 <xsl:value-of select="@ident"/>
@@ -659,8 +663,10 @@
             </h1>
             <xsl:value-of select="//sourceDesc/p[1]"/>
             <br/>
-            <xsl:text>Last updated: </xsl:text>
-            <xsl:value-of select="format-date(current-date(), '[MNn] [D1], [Y1]')"/>
+            <h3>
+              <xsl:if test='$outputLanguage = "en"'><xsl:text>Last updated: </xsl:text><xsl:value-of select="format-date(current-date(), '[MNn] [D1], [Y1]')"/></xsl:if>
+              <xsl:if test='$outputLanguage = "fr"'><xsl:text>Version mise à jour le </xsl:text><xsl:value-of select="format-date(current-date(), '[D1] /[M1]/[Y1]')"/></xsl:if>
+            </h3>
           </div>
         </div>
         <div class="body">
@@ -758,7 +764,10 @@
           <xsl:apply-templates select="//div[@type = 'attribute']" mode="TEI2HTML"/>
         </div>
         <div>
-          <a href="#" class="go-top">Back to top</a>
+          <a href="#" class="go-top">
+            <xsl:if test='$outputLanguage="en"'><xsl:text>Back to top</xsl:text></xsl:if>
+            <xsl:if test='$outputLanguage="fr"'><xsl:text>Retour</xsl:text></xsl:if>
+            </a>
         </div>
       </body>
     </html>
@@ -812,7 +821,8 @@
 
   <xsl:template match="div[@ana = 'project']" mode="TEI2HTML">
     <div>
-      <span class="label">Project: </span>
+      <xsl:if test='$outputLanguage = "en"'><span class="label">Project: </span></xsl:if>
+      <xsl:if test='$outputLanguage = "fr"'><span class="label">Projet: </span></xsl:if>
       <span class="local_description">
         <xsl:for-each select="span[@type = 'definition']">
           <xsl:apply-templates/>
@@ -866,8 +876,11 @@
         </xsl:if>
       </span>
       <div class="examples">
+        <xsl:message><xsl:text>Traitement d'un exemple</xsl:text></xsl:message>
         <xsl:if test="teix:egXML">
-          <span class="label">Example(s): </span>
+          <xsl:message><xsl:text>egXML disponible!</xsl:text></xsl:message>
+          <xsl:if test='$outputLanguage="en"'><span class="label">Example(s): </span></xsl:if>
+          <xsl:if test='$outputLanguage="fr"'><span class="label">Exemple(s): </span></xsl:if>
         </xsl:if>
         <xsl:apply-templates select="teix:egXML"/>
       </div>
@@ -893,16 +906,20 @@
           <a>
             <xsl:attribute name="target" select="'_blank'"/>
             <xsl:attribute name="href" select="@target"/>
-            <xsl:text>[more]</xsl:text>
+            <xsl:if test='$outputLanguage = "en"'><xsl:text>[more]</xsl:text></xsl:if>
+            <xsl:if test='$outputLanguage = "fr"'><xsl:text>[plus]</xsl:text></xsl:if>
           </a>
           <xsl:if test="position() lt last()">
             <xsl:value-of select="$bullet"/>
           </xsl:if>
           <xsl:if test="$displayModule = 'true'">
+            <br/>
             <xsl:text> Module: </xsl:text>
-            <xsl:value-of select="preceding-sibling::ab[@type = 'module'][1]"/>
-            <xsl:text> Class(es): </xsl:text>
-            <xsl:value-of select="preceding-sibling::ab[@type = 'classes'][1]/seg"/>
+            <xsl:value-of select="preceding::ab[@type = 'module'][1]"/>
+            <br/>
+            <xsl:if test='$outputLanguage = "en"'><xsl:text> Class(es): </xsl:text></xsl:if>
+            <xsl:if test='$outputLanguage = "fr"'><xsl:text> Classe(s): </xsl:text></xsl:if>
+            <xsl:value-of select="preceding::ab[@type = 'classes'][1]/seg"/>
           </xsl:if>
         </xsl:for-each>
       </span>
@@ -926,10 +943,12 @@
         </xsl:if>
       </xsl:attribute>
       <xsl:if test="@type = 'parents'">
-        <span class="label">Contained by: </span>
+        <xsl:if test='$outputLanguage = "en"'><span class="label">Contained by: </span></xsl:if>
+        <xsl:if test='$outputLanguage = "fr"'><span class="label">Contenu dans: </span></xsl:if>
       </xsl:if>
       <xsl:if test="@type = 'children'">
-        <span class="label">May contain: </span>
+        <xsl:if test='$outputLanguage = "en"'><span class="label">May contain: </span></xsl:if>
+        <xsl:if test='$outputLanguage = "fr"'><span class="label">Peut contenir: </span></xsl:if>
       </xsl:if>
       <ul>
         <xsl:choose>
@@ -956,7 +975,8 @@
 
   <xsl:template match="ab[@type = 'attributes']" mode="TEI2HTML">
     <div class="attributes">
-      <span class="label">Attributes: </span>
+      <xsl:if test='$outputLanguage = "en"'><span class="label">Attributes: </span></xsl:if>
+      <xsl:if test='$outputLanguage = "fr"'><span class="label">Attributs: </span></xsl:if>
       <ul>
         <xsl:for-each select="seg">
           <li>
@@ -1065,4 +1085,16 @@
     </xsl:if>
   </xsl:template>
 
+  <!-- Adaptation personnelle  -->
+  <xsl:template match="list[type='unordered']">
+    <xsl:element name="ul">
+      <xsl:apply-templates/>
+    </xsl:element>
+  </xsl:template>
+
+  <xsl:template match="list/item">
+    <xsl:element name="li">
+      <xsl:apply-templates/>
+    </xsl:element>
+  </xsl:template>
 </xsl:stylesheet>
